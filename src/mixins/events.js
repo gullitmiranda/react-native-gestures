@@ -1,7 +1,7 @@
 import Rx from 'rx'
-
-export default function events (evs = []) {
-  return {
+import React from 'react'
+export default function events (Component, evs = []) {
+  return React.createClass({
     componentWillMount () {
       var streams = evs.reduce(function (res, eventName) {
         res[eventName] = new Rx.Subject()
@@ -12,6 +12,10 @@ export default function events (evs = []) {
     },
     componentWillUnmount () {
       evs.forEach((ev) => this.__streams[ev].onCompleted())
+    },
+
+    render () {
+      return <Component {...this.props} />
     }
-  }
+  })
 }

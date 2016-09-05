@@ -1,13 +1,24 @@
-module.exports = {
-  drag: require('./drag'),
-  pinch: require('./pinch'),
-  create: require('./create'),
-  draggable: require('./mixins/draggable'),
-  events: require('./mixins/events'),
-  GestureView: require('./GestureView'),
-  responders: {
-    general: require('./responder/general'),
-    oneFinger: require('./responder/oneFinger'),
-    twoFinger: require('./responder/twoFinger')
-  }
+import drag from './drag'
+import pinch from './pinch'
+import create from './create'
+import draggable from './mixins/draggable'
+import events from './mixins/events'
+import GestureView from './GestureView'
+import general from './responder/general'
+import oneFinger from './responder/oneFinger'
+import twoFinger from './responder/twoFinger'
+
+// export { drag, pinch, create, draggable, events, GestureView }
+export {
+  drag,
+  pinch,
+  create,
+  draggable,
+  events,
+  GestureView,
+}
+export let responders = {
+  general,
+  oneFinger,
+  twoFinger
 }
