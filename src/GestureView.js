@@ -91,14 +91,6 @@ export default class GestureView extends React.Component {
         this.props.onMove(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
         onDragMove.onNext(evt.nativeEvent)
       },
-onPanResponderRelease: (evt, gestureState) => {
-        if (gestureState.moveX == 0 && gestureState.moveY == 0) {
-          this.props.tapCallback()
-        } else {
-          this.props.onRelease(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
-          onDragRelease.onNext(evt.nativeEvent)
-        }
-      },
       onPanResponderTerminate: yes,
       onShouldBlockNativeResponder: yes
     })
@@ -120,8 +112,7 @@ onPanResponderRelease: (evt, gestureState) => {
   componentDidMount () {
     this.layoutStream.subscribe(
       (layout) => {
-        console.log(layout)
-        this.props.gestureCallback(layout)
+        // this.props.gestureCallback(layout)
         this.container.setNativeProps({
           style: this.props.toStyle(layout)
         })
