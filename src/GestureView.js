@@ -112,7 +112,7 @@ export default class GestureView extends React.Component {
   componentDidMount () {
     this.layoutStream.subscribe(
       (layout) => {
-        // this.props.gestureCallback(layout)
+        this.props.gestureCallback(layout)
         this.container.setNativeProps({
           style: this.props.toStyle(layout)
         })
