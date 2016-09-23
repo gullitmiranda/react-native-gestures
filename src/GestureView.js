@@ -75,20 +75,20 @@ export default class GestureView extends React.Component {
       onMoveShouldSetPanResponderCapture: yes,
       onPanResponderGrant: (evt) => onDragStart.onNext(evt.nativeEvent),
       onPanResponderMove: (evt, gestureState) => {
-        this.props.onMove(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
+        this.props.onMove(evt.nativeEvent.pageX, evt.nativeEvent.pageY, this.layout)
         onDragMove.onNext(evt.nativeEvent)
       },
       onPanResponderRelease: (evt, gestureState) => {
         if (gestureState.moveX == 0 && gestureState.moveY == 0) {
           this.props.tapCallback()
         } else {
-          this.props.onRelease(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
+          this.props.onRelease(evt.nativeEvent.pageX, evt.nativeEvent.pageY, this.layout)
           onDragRelease.onNext(evt.nativeEvent)
         }
       },
       onPanResponderTerminationRequest: yes,
       onPanResponderMove: (evt, gestureState) => {
-        this.props.onMove(evt.nativeEvent.pageX, evt.nativeEvent.pageY)
+        this.props.onMove(evt.nativeEvent.pageX, evt.nativeEvent.pageY, this.layout)
         onDragMove.onNext(evt.nativeEvent)
       },
       onPanResponderTerminate: yes,
