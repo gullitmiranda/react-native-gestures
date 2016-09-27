@@ -134,8 +134,14 @@ export default class GestureView extends React.Component {
     }
 
     return (
-      <Animated.View {...props}>
-        {this.props.children}
+      <Animated.View>
+      {this.props.type === 'View' ? (
+        <Animated.View {...props}>
+          {this.props.children}
+        </Animated.View>
+      ) : (
+        <Image {...props} />
+      )}
       </Animated.View>
     )
   }
