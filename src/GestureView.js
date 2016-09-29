@@ -7,7 +7,6 @@ import React, {
 } from 'react'
 import {
   Animated,
-  Image,
   PanResponder
 } from 'react-native'
 
@@ -140,7 +139,7 @@ export default class GestureView extends React.Component {
           {this.props.children}
         </Animated.View>
       ) : (
-        <Image {...props} />
+        <Animated.Image {...props} />
       )}
       </Animated.View>
     )
