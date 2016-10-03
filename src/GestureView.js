@@ -13,85 +13,100 @@ import {
 export default class GestureView extends React.Component {
   static propTypes = {
     gestures: PropTypes.array.isRequired,
-    onError: PropTypes.func.isRequired,
-    toStyle: PropTypes.func.isRequired,
-    style: PropTypes.any,
-
-    type: PropTypes.oneOf([
+    style   : PropTypes.any,
+    source  : PropTypes.any,
+    type    : PropTypes.oneOf([
       'View',
       'Image'
     ]),
-    source: PropTypes.any
+
+    toStyle        : PropTypes.func,
+    onError        : PropTypes.func,
+    onStart        : PropTypes.func,
+    onMove         : PropTypes.func,
+    onRelease      : PropTypes.func,
+    gestureCallback: PropTypes.func,
+    tapCallback    : PropTypes.func,
+  };
+
+  static defaultProps = {
+    onError         : (_err         ) => {},
+    onStart         : (_layout, _evt) => {},
+    onMove          : (_layout, _evt) => {},
+    onRelease       : (_layout, _evt) => {},
+    gestureCallback : (_layout, _evt) => {},
+    tapCallback     : (_layout, _evt) => {},
+    toStyle         : (layout) => {
+      const { width, height, x: left, y: top, rotate = 0 } = layout;
+      return { top, left, width, height, transform: [{ rotate: `${rotate}deg` }] };
+    },
+    dragFilter : (evt) => evt.target === this.target,
   }
 
   getInitialLayout () {
     return this.layout
   }
 
-  isCurrentTarget (ev) {
-    return ev.target === this.target
-  }
-
   componentWillMount () {
-    this.target = null
-    this.layout = null
-    this.evs = ['onLayout']
-    this.gestureDefs = []
+    this.target      = null;
+    this.layout      = null;
+    this.evs         = ['onLayout'];
+    this.gestureDefs = [];
 
-    this.getInitialLayout = this.getInitialLayout.bind(this)
-    this.isCurrentTarget = this.isCurrentTarget.bind(this)
+    const { dragFilter } = this.props;
+
+    this.getInitialLayout = this.getInitialLayout.bind(this);
 
     var streams = this.evs.reduce(function (res, eventName) {
-      res[eventName] = new Rx.Subject()
-      return res
-    }, {})
+      res[eventName] = new Rx.Subject();
+      return res;
+    }, {});
 
     Object.assign(this, streams, {__streams: streams})
 
-    let onDragStart = new Rx.Subject()
-    let onDragMove = new Rx.Subject()
-    let onDragRelease = new Rx.Subject()
+    const onDragStart   = new Rx.Subject()
+    const onDragMove    = new Rx.Subject()
+    const onDragRelease = new Rx.Subject()
 
     this
       .onLayout
       .take(1)
-      .subscribe(ev => this.target = ev.target)
+      .subscribe(ev => this.target = ev.target);
 
     this
       .onLayout
-      .subscribe(ev => this.layout = ev.layout)
+      .subscribe(ev => this.layout = ev.layout);
 
     let draggable = {
-      onDragStart: onDragStart.filter(this.isCurrentTarget),
-      onDragMove: onDragMove.filter(this.isCurrentTarget),
-      onDragRelease: onDragRelease.filter(this.isCurrentTarget)
+      onDragStart  : onDragStart.filter(dragFilter),
+      onDragMove   : onDragMove.filter(dragFilter),
+      onDragRelease: onDragRelease.filter(dragFilter)
     }
 
     this.gestureResponder = PanResponder.create({
-      onStartShouldSetPanResponder: yes,
+      onStartShouldSetPanResponder       : yes,
       onStartShouldSetPanResponderCapture: yes,
-      onMoveShouldSetPanResponder: yes,
-      onMoveShouldSetPanResponderCapture: yes,
-      onPanResponderGrant: (evt) => onDragStart.onNext(evt.nativeEvent),
+      onMoveShouldSetPanResponder        : yes,
+      onMoveShouldSetPanResponderCapture : yes,
+      onPanResponderGrant: (evt) => {
+        this.props.onStart(this.layout, evt);
+        onDragStart.onNext(evt.nativeEvent);
+      },
       onPanResponderMove: (evt, gestureState) => {
-        this.props.onMove(evt.nativeEvent.pageX, evt.nativeEvent.pageY, this.layout)
+        this.props.onMove(this.layout, evt)
         onDragMove.onNext(evt.nativeEvent)
       },
       onPanResponderRelease: (evt, gestureState) => {
         if (gestureState.moveX == 0 && gestureState.moveY == 0) {
-          this.props.tapCallback()
+          this.props.tapCallback(this.layout, evt)
         } else {
-          this.props.onRelease(evt.nativeEvent.pageX, evt.nativeEvent.pageY, this.layout)
+          this.props.onRelease(this.layout, evt)
           onDragRelease.onNext(evt.nativeEvent)
         }
       },
       onPanResponderTerminationRequest: yes,
-      onPanResponderMove: (evt, gestureState) => {
-        this.props.onMove(evt.nativeEvent.pageX, evt.nativeEvent.pageY, this.layout)
-        onDragMove.onNext(evt.nativeEvent)
-      },
-      onPanResponderTerminate: yes,
-      onShouldBlockNativeResponder: yes
+      onPanResponderTerminate         : yes,
+      onShouldBlockNativeResponder    : yes
     })
 
     if (this.props && this.props.gestures) {
@@ -111,10 +126,10 @@ export default class GestureView extends React.Component {
   componentDidMount () {
     this.layoutStream.subscribe(
       (layout) => {
-        this.props.gestureCallback(layout)
+        this.props.gestureCallback(layout);
         this.container.setNativeProps({
-          style: this.props.toStyle(layout)
-        })
+          style: this.props.toStyle(layout),
+        });
       },
       (err) => this.props.onError(err)
     )
@@ -122,13 +137,13 @@ export default class GestureView extends React.Component {
 
   render () {
     let props = {
-      ref: (container) => this.container = container,
-      style: this.props.style,
-      onLayout: ({nativeEvent}) => {
-        this.onLayout.onNext(nativeEvent)
-      },
-      type: this.props.type || 'View',
+      ref   : (container) => this.container = container,
+      style : this.props.style,
+      type  : this.props.type || 'View',
       source: this.props.source,
+      onLayout: (ev) => {
+        this.onLayout.onNext(ev.nativeEvent)
+      },
       ...this.gestureResponder.panHandlers
     }
 
